@@ -1,0 +1,5 @@
+/*
+     Deiberately left empty
+
+     Used to create a dummy libRealEGL.so
+*/
