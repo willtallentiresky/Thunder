@@ -44,6 +44,7 @@ namespace Plugin {
             , Configuration(false)
             , PersistentPathPostfix()
             , VolatilePathPostfix()
+            , CachePathPostfix()
             , StartupOrder(50)
         {
             Add(_T("callsign"), &Callsign);
@@ -58,6 +59,7 @@ namespace Plugin {
             Add(_T("configuration"), &Configuration);
             Add(_T("persistentpathpostfix"), &PersistentPathPostfix);
             Add(_T("volatilepathpostfix"), &VolatilePathPostfix);
+            Add(_T("cachepathpostfix"), &CachePathPostfix);
             Add(_T("startuporder"), &StartupOrder);
         }
         Config(const Config& copy)
@@ -74,6 +76,7 @@ namespace Plugin {
             , Configuration(copy.Configuration)
             , PersistentPathPostfix(copy.PersistentPathPostfix)
             , VolatilePathPostfix(copy.VolatilePathPostfix)
+            , CachePathPostfix(copy.CachePathPostfix)
             , StartupOrder(copy.StartupOrder)
         {
             Add(_T("callsign"), &Callsign);
@@ -88,6 +91,7 @@ namespace Plugin {
             Add(_T("configuration"), &Configuration);
             Add(_T("persistentpathpostfix"), &PersistentPathPostfix);
             Add(_T("volatilepathpostfix"), &VolatilePathPostfix);
+            Add(_T("cachepathpostfix"), &CachePathPostfix);
         }
         ~Config()
         {
@@ -107,6 +111,7 @@ namespace Plugin {
             Termination = RHS.Termination;
             PersistentPathPostfix = RHS.PersistentPathPostfix;
             VolatilePathPostfix = RHS.VolatilePathPostfix;
+            CachePathPostfix = RHS.CachePathPostfix;
             StartupOrder = RHS.StartupOrder;
 
             return (*this);
@@ -123,6 +128,11 @@ namespace Plugin {
             string postfixPath = ((VolatilePathPostfix.IsSet() == true) && (VolatilePathPostfix.Value().empty() == false)) ? VolatilePathPostfix.Value(): Callsign.Value();
             return (basePath + postfixPath + '/');
         }
+        string CachePath(const string& basePath) const {
+// TODO: if (not) set
+            string postfixPath = ((CachePathPostfix.IsSet() == true) && (CachePathPostfix.Value().empty() == false)) ? CachePathPostfix.Value(): Callsign.Value();
+            return (basePath + postfixPath + '/');
+        }
 
     public:
         Core::JSON::String Callsign;
@@ -137,6 +147,7 @@ namespace Plugin {
         Core::JSON::String Configuration;
         Core::JSON::String PersistentPathPostfix;
         Core::JSON::String VolatilePathPostfix;
+        Core::JSON::String CachePathPostfix;
         Core::JSON::DecUInt32 StartupOrder;
 
         static Core::NodeId IPV4UnicastNode(const string& ifname);

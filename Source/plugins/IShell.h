@@ -177,6 +177,9 @@ namespace PluginHost {
         //! VolatilePath: <config:volatilepath>/<plugin:callsign>/
         virtual string ProxyStubPath() const = 0;
 
+        //! CachePath: <config:cachepath>/<plugin:callsign>/
+        virtual string CachePath() const = 0;
+
         //! Substituted Config value
         virtual string Substitute(const string& input) const = 0;
 

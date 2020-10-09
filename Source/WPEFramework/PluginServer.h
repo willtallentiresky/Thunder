@@ -399,7 +399,7 @@ namespace PluginHost {
 
         public:
             Service(const PluginHost::Config& server, const Plugin::Config& plugin, ServiceMap& administrator)
-                : PluginHost::Service(plugin, server.WebPrefix(), server.PersistentPath(), server.DataPath(), server.VolatilePath())
+                : PluginHost::Service(plugin, server.WebPrefix(), server.PersistentPath(), server.DataPath(), server.VolatilePath(), server.CachePath())
                 , _pluginHandling()
                 , _handler(nullptr)
                 , _extended(nullptr)

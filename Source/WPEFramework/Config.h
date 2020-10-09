@@ -53,6 +53,9 @@ namespace PluginHost {
                 _variables.insert(std::make_pair("volatilepath", [](const Config& config, const Plugin::Config* info) {
                     return (info == nullptr ? config.VolatilePath() : info->VolatilePath(config.VolatilePath()));
                 }));
+                _variables.insert(std::make_pair("cachepath", [](const Config& config, const Plugin::Config* info) {
+                    return (info == nullptr ? config.CachePath() : info->CachePath(config.CachePath()));
+                }));
                 _variables.insert(std::make_pair("proxystubpath", [](const Config& config, const Plugin::Config*) {
                     return (config.ProxyStubPath());
                 }));
@@ -298,8 +301,10 @@ namespace PluginHost {
                 , SystemPath()
 #ifdef __WINDOWS__
                 , VolatilePath(_T("c:/temp"))
+                , CachePath()
 #else
                 , VolatilePath(_T("/tmp"))
+                , CachePath()
 #endif
                 , ProxyStubPath()
                 , PostMortemPath(_T("/opt/minidumps"))
@@ -333,6 +338,7 @@ namespace PluginHost {
                 Add(_T("datapath"), &DataPath);
                 Add(_T("systempath"), &SystemPath);
                 Add(_T("volatilepath"), &VolatilePath);
+                Add(_T("cachepath"), &CachePath);
                 Add(_T("proxystubpath"), &ProxyStubPath);
                 Add(_T("postmortempath"), &PostMortemPath);
                 Add(_T("communicator"), &Communicator);
@@ -365,6 +371,7 @@ namespace PluginHost {
             Core::JSON::String DataPath;
             Core::JSON::String SystemPath;
             Core::JSON::String VolatilePath;
+            Core::JSON::String CachePath;
             Core::JSON::String ProxyStubPath;
             Core::JSON::String PostMortemPath;
             Core::JSON::String Communicator;
@@ -508,8 +515,17 @@ namespace PluginHost {
 #ifdef PROCESSCONTAINERS_ENABLED
                 _ProcessContainersLogging = config.ProcessContainers.Logging.Value();
 #endif
+
                 _volatilePath = Core::Directory::Normalize(config.VolatilePath.Value());
                 _persistentPath = Core::Directory::Normalize(config.PersistentPath.Value());
+
+                if (config.CachePath.IsSet() != true) {
+                    _cachePath = _persistentPath;
+                }
+                else {
+                    _cachePath = Core::Directory::Normalize(config.CachePath.Value());
+                }
+
                 _dataPath = Core::Directory::Normalize(config.DataPath.Value());
                 _systemPath = Core::Directory::Normalize(config.SystemPath.Value());
                 _configsPath = Core::Directory::Normalize(config.Configs.Value());
@@ -610,6 +626,10 @@ namespace PluginHost {
             return (_ProcessContainersLogging);
         }
 #endif
+        inline const string& CachePath() const
+        {
+            return (_cachePath);
+        }
         inline const string& VolatilePath() const
         {
             return (_volatilePath);
@@ -810,6 +830,7 @@ namespace PluginHost {
         const bool _background;
         string _webPrefix;
         string _JSONRPCPrefix;
+        string _cachePath;
         string _volatilePath;
         string _persistentPath;
         string _dataPath;

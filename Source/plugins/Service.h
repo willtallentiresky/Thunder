@@ -47,7 +47,7 @@ namespace PluginHost {
             Config& operator=(const Config&) = delete;
 
         public:
-            Config(const Plugin::Config& plugin, const string& webPrefix, const string& persistentPath, const string& dataPath, const string& volatilePath)
+            Config(const Plugin::Config& plugin, const string& webPrefix, const string& persistentPath, const string& dataPath, const string& volatilePath, const string& cachePath)
             {
                 const string& callSign(plugin.Callsign.Value());
 
@@ -55,9 +55,13 @@ namespace PluginHost {
                 _persistentPath = plugin.PersistentPath(persistentPath);
                 _dataPath = plugin.DataPath(dataPath);
                 _volatilePath = plugin.VolatilePath(volatilePath);
+                _cachePath = plugin.CachePath(cachePath);
 
                 // Volatile means that the path could not have been created, create it for now.
                 Core::Directory(_volatilePath.c_str()).CreatePath();
+
+                // Cache may imply a volatile path that does not exist, CreatePath only creates if it does not exist
+                Core::Directory(_cachePath.c_str()).CreatePath();
 
                 Update(plugin);
             }
@@ -111,6 +115,13 @@ namespace PluginHost {
                 return (_dataPath);
             }
 
+            // CachePath is a path to semi-volatile location
+            // This path is constructed as: CachePath / callSign /
+            inline const string& CachePath() const
+            {
+                return (_cachePath);
+            }
+
             inline void Update(const Plugin::Config& config)
             {
                 _config = config;
@@ -143,19 +154,20 @@ namespace PluginHost {
             string _persistentPath;
             string _volatilePath;
             string _dataPath;
+            string _cachePath;
             string _accessor;
             std::list<uint8_t> _versions;
         };
 
     public:
-        Service(const Plugin::Config& plugin, const string& webPrefix, const string& persistentPath, const string& dataPath, const string& volatilePath)
+        Service(const Plugin::Config& plugin, const string& webPrefix, const string& persistentPath, const string& dataPath, const string& volatilePath, const string& cachePath)
             : _adminLock()
 #if THUNDER_RUNTIME_STATISTICS
             , _processedRequests(0)
             , _processedObjects(0)
 #endif
             , _state(DEACTIVATED)
-            , _config(plugin, webPrefix, persistentPath, dataPath, volatilePath)
+            , _config(plugin, webPrefix, persistentPath, dataPath, volatilePath, cachePath)
 #if THUNDER_RESTFULL_API
             , _notifiers()
 #endif
@@ -210,6 +222,10 @@ namespace PluginHost {
         virtual string DataPath() const
         {
             return (_config.DataPath());
+        }
+        virtual string CachePath() const
+        {
+            return (_config.CachePath());
         }
         virtual state State() const
         {
