@@ -1,0 +1,195 @@
+# Example WebServer (ThunderNanoServices)
+#
+# WebServer.cpp 'lives' within process WPEFrameWork
+# WebServerImplementation.cpp 'lives' within process WPEPRocess
+#
+# WebServer.cpp has a code line, many plugins have a similar line of code, 
+#
+# _server = _service->Root<Exchange::IWebServer>(_connectionId, 2000, _T("WebServerImplementation"));
+#
+# Eventually, this maps to Communiccator.h
+# line 1251, Communicator::           inline void* Create(uint32_t& pid, const Object& instance, const Config& config, const uint32_t waitTime)
+# line 766, RemoteCOnnectionMap::     inline void* Create(uint32_t& id, const Object& instance, const Config& config, const uint32_t waitTime)
+#
+# Here, a lock is set based on waitTime. This lock maps to Sync.cpp line 884
+# Core::Eventi::Lock(..)
+#
+# The timeout value is used in pthread_cond_timedwait(..), to set an absolute clock time. The given time is considered to be in milliseconds.
+#
+# Overrule this time by setting it in Communicator.h or WebServer.cpp to Core::infinite to obtain sufficient time to connect a debugger
+# It can be automated in gdb using
+#
+# break Communicator.h:797
+# commands
+# set timeWait = Core::infinite
+# continue
+# end
+#
+# Do not forget to set follow-fork-mode to parent, and if required follow-exec-mode to same. The former is the most important setting.
+#
+# In order to continue debugging a second debuger can be attached to the given pid, and processing continues after sending the SIGUSR1 / SIGINT signal.
+#
+# kill -SIGUSR1 <pid>
+#
+# First attempt. Possibly wrong and / or incomplete, and may contain 'bad' code and / or coding practice.
+#
+# RDK licence and copyright (may) apply.
+
+diff --git a/Source/WPEProcess/Process.cpp b/Source/WPEProcess/Process.cpp
+index 4fd7e35a..f1f3ada9 100644
+--- a/Source/WPEProcess/Process.cpp
++++ b/Source/WPEProcess/Process.cpp
+@@ -7,6 +7,33 @@
+ #include <client/linux/handler/exception_handler.h>
+ #endif
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include <stdio.h>
++#include <unistd.h>
++#include <signal.h>
++#include <sys/signalfd.h>
++//#include <sys/types.h>
++//#include <unistd.h>
++#include <sys/syscall.h>
++
++#include <sys/types.h>
++#include <unistd.h>
++
++#include <string.h>
++
++#ifdef __cplusplus
++}
++#endif
++
++#include <array>
++#include <iostream>
++#include <string>
++
++#define V(val) val
++
+ MODULE_NAME_DECLARATION(BUILD_REFERENCE)
+ 
+ namespace WPEFramework {
+@@ -495,12 +522,119 @@ private:
+ 
+ using namespace WPEFramework;
+ 
++#define V(val) val
++
++enum Enum {
++
++#define ENUM \
++    V(OLD), \
++    V(NEW)
++
++    ENUM
++};
++
++template <typename ... T>
++constexpr size_t Length (T ... args) {
++    return sizeof ... (args);
++}
++
++constexpr size_t length () {
++    return Length (ENUM);
++}
++
+ #ifdef __WINDOWS__
+ int _tmain(int argc, _TCHAR* argv[])
+ #else
+ int main(int argc, char** argv)
+ #endif
+ {
++    auto print_error = [] (const std::string& msg) { std::cerr << msg << std::endl; };
++    auto print_error_and_exit = [] (const std::string& msg) { std::cerr << msg <<std::endl; exit (EXIT_FAILURE); };
++    auto print_msg = [] (const std::string& msg) { std::cout << msg << std::endl; };
++
++    int sfd;
++
++    std::array <sigset_t, length () > _mask;
++
++    if (sigemptyset (&_mask[OLD]) != 0) {
++        print_error_and_exit ("sigemptyset");
++    }
++
++#ifdef _0 // If for some reason blocking is not sufficient
++    // Overrule the default disposition
++     struct sigaction _action;
++    _action.sa_handler = SIG_IGN;
++    _action.sa_flags = 0;
++    _action.sa_mask = _mask[OLD];
++
++    if (sigaction (SIGUSR1, &_action, nullptr) != 0) {
++        print_error_and_exit ("sigaction");
++    }
++#endif
++
++    if (sigfillset (&_mask[NEW]) !=0) {
++        print_error_and_exit ("sigfillset");
++    }
++
++    // Block the signals thet we handle using signalfd(), so they don't cause signal handlers or default signal actions to execute.
++    if (sigprocmask (SIG_BLOCK, &_mask[NEW], &_mask[OLD]) < 0) {
++        print_error_and_exit ("sigprocmask");
++    }
++
++    // Create a file descriptor from which we will read the signals.
++    sfd = signalfd  (-1, &_mask[NEW], 0);
++    if (sfd < 0) {
++        print_error_and_exit ("signalfd");
++    }
++
++    long pid = syscall (SYS_gettid);
++
++    if (pid < 0) {
++        print_error_and_exit ("pid");
++    }
++
++    print_msg (std::string ("Waiting for a debuggur to attach to ").append (std::to_string (pid)));
++    print_msg ("Then, send a signal SIGUSR1 to it");
++
++    for (;;) {
++        // The buffor for read(), this structure contains information about the signal we've read.
++        struct signalfd_siginfo si;
++
++        ssize_t res;
++
++        constexpr size_t _size = sizeof (si);
++
++        res = read (sfd, &si, _size);
++
++        if (res < 0) {
++            print_error_and_exit ("read");
++        }
++        if (res != _size) {
++            print_error_and_exit ("Something wrong");
++        }
++
++        switch (si.ssi_signo) {
++            case SIGTERM    :   print_msg ("SIGTERM");
++                                continue;
++            default         :   print_error ("Unhandled signal");
++                                continue;
++            case SIGUSR1    :
++            case SIGINT     :   print_msg ("Continue debugging!");
++        }
++
++        break;
++    }
++
++    // Close the file descriptor if we no longer need it.
++    if (sfd > 0 && close (sfd) == -1) {
++        print_error ("close");
++    }
++
++    // Restore the old mask
++    if (sigprocmask (SIG_SETMASK, &_mask[OLD], nullptr) < 0) {
++        print_error_and_exit ("sigprocmask");
++    }
++
+     // Give the debugger time to attach to this process..
+     // printf("Starting to sleep so you can attach a debugger\n");
+     // Sleep(20000);
