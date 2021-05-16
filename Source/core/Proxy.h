@@ -1236,7 +1236,7 @@ namespace Core {
 
             if ((result != Core::ERROR_DESTRUCTION_SUCCEEDED) && (this->LastRef() == true) && (_parent != nullptr)) {
                 // The Map is the only one still holding this proxy. Kill it....
-                _parent->RemoveElement(this);
+                _parent->RemoveObject(this);
             }
 
             return (result);
@@ -1374,15 +1374,15 @@ namespace Core {
         template<typename ACTION>
         void Visit(ACTION&& action ) const {
             _lock.Lock();
-            for (std::pair< PROXYKEY, ContainerElement*>& entry : _map) {
-                action(entry.first, Core::ProxyType<PROXYELEMENT>(static_cast<IReferenceCounted*>(entry->second), entry->second));
+            for (std::pair< PROXYKEY, ContainerElement*> entry : _map) {
+                action(entry.first, Core::ProxyType<PROXYELEMENT>(static_cast<IReferenceCounted*>(entry.second), entry.second));
             }
             _lock.Unlock();
         }
         void Clear()
         {
             _lock.Lock();
-            for (std::pair< PROXYKEY, ContainerElement*>& entry : _map) {
+            for (std::pair< PROXYKEY, ContainerElement*> entry : _map) {
                 entry.second->Decouple();
                 entry.second->InternalRelease();
             }
@@ -1391,6 +1391,7 @@ namespace Core {
         }
 
     private:
+        friend ContainerElement;
         void RemoveObject(const PROXYELEMENT* element) const
         {
             _lock.Lock();
@@ -1475,6 +1476,7 @@ namespace Core {
         }
 
     private:
+        friend ContainerElement;
         void RemoveObject(const PROXYELEMENT* element) const
         {
             _lock.Lock();
