@@ -549,6 +549,13 @@ uint32_t EXTERNAL GetCallStack(const ThreadId threadId, void* addresses[], const
 
 namespace WPEFramework {
 
+    // Please note not in Core for a reason
+    #if defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8) 
+    typedef uint64_t instance_id;
+    #else
+    typedef uint32_t instance_id;
+    #endif
+
 namespace Core {
 
     inline void* Alignment(size_t alignment, void* incoming)

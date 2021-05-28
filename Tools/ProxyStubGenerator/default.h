@@ -54,8 +54,9 @@ namespace WPEFramework {
     };
   }
 
+  typedef __stubgen_integer instance_id;
+
   namespace RPC {
-    typedef __stubgen_integer instance_id;
 
     class IStringIterator;
     class IValueIterator;
