@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2020 Metrological
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,16 @@
 namespace WPEFramework {
 namespace RPC {
 
+    // As COMRPC might run between a 32 bit and 64 bit system, the largest must be accommodated.
+    #if defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8) 
+    typedef uint64_t instance_id;
+    #else
+    typedef uint32_t instance_id;
+    #endif
+
     template<typename INCOMING>
-    instance_id instance_cast(INCOMING value) {
-        return ((instance_id) value);
+    RPC::instance_id instance_cast(INCOMING value) {
+        return ((RPC::instance_id) value);
     }
 
     namespace Data {
@@ -223,6 +230,7 @@ namespace RPC {
                 , _exchangeId(~0)
                 , _versionId(0)
             {
+                _className[0] = '\0';
             }
             ~Init()
             {

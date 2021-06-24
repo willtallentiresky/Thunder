@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2020 Metrological
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1101,7 +1101,7 @@ namespace Core {
 
                 if ((m_ReadBytes != 0) && (handledBytes != 0)) {
                     // Oops not all data was consumed, Lets remove the read data
-                    ::memcpy(m_ReceiveBuffer, &m_ReceiveBuffer[handledBytes], m_ReadBytes);
+                    ::memmove(m_ReceiveBuffer, &m_ReceiveBuffer[handledBytes], m_ReadBytes);
                 }
             }
         }

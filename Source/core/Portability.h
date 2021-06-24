@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2020 Metrological
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -548,13 +548,6 @@ uint32_t EXTERNAL GetCallStack(const ThreadId threadId, void* addresses[], const
 #endif
 
 namespace WPEFramework {
-
-    // Please note not in Core for a reason
-    #if defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8) 
-    typedef uint64_t instance_id;
-    #else
-    typedef uint32_t instance_id;
-    #endif
 
 namespace Core {
 

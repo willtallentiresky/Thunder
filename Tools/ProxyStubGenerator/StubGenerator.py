@@ -3,7 +3,7 @@
 # If not stated otherwise in this file or this component's license file the
 # following copyright and licenses apply:
 #
-# Copyright 2020 RDK Management
+# Copyright 2020 Metrological
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ CLASS_IUNKNOWN = "::WPEFramework::Core::IUnknown"
 PROXYSTUB_CPP_NAME = "ProxyStubs_%s.cpp"
 
 MIN_INTERFACE_ID = 64
-INSTANCE_ID = "instance_id"
+INSTANCE_ID = "RPC::instance_id"
 
 DEFAULT_DEFINITIONS_FILE = "default.h"
 IDS_DEFINITIONS_FILE = "Ids.h"
