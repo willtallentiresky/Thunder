@@ -115,9 +115,8 @@ namespace Core {
 
         ~ResourceMonitorType()
         {
-
             // All resources should be gone !!!
-            ASSERT(_resourceList.size() == 0);
+//            ASSERT(_resourceList.size() == 0);
 
             if (_monitor != nullptr) {
 
