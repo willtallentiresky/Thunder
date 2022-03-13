@@ -253,10 +253,12 @@ namespace PluginHost
 
         _adminLock.Unlock();
 
-        TRACE_L1("Pending notifiers are %lu", _notifiers.size());
+        #if _TRACE_LEVEL > 0
+        TRACE_L1("Pending notifiers are %d", static_cast<uint32_t>(_notifiers.size()));
         for (auto notifier : _notifiers) {
             TRACE_L1("   -->  %s", Core::ClassNameOnly(typeid(*notifier).name()).Text().c_str());
         }
+        #endif
 
         _processAdministrator.Close(Core::infinite);
 
