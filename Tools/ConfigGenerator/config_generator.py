@@ -26,11 +26,12 @@ import types
 import re
 
 from json_helper import JSON
+from i_config import *
 import traceback
 
 INDENT_SIZE = 2
 PARAM_CONFIG = "params.config"
-boiler_plate = "from json_helper import *"
+boiler_plate = "from i_config import *"
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
@@ -213,25 +214,36 @@ if __name__ == "__main__":
             sys.exit(1)
 
         if iconfig:
-            params = get_config_params(args.params_config)
-            if not params:
-                log.Error(f"Whitelisted Params not available")
-                sys.exit(1)
-            isEmpty = True
-            for param in iconfig.__dict__:
-                if param in params:
-                    result.add(param, iconfig.__dict__[param])
-                    isEmpty = False
-                else:
-                    if not param.startswith('__') \
-                            and not isinstance(iconfig.__dict__[param], types.ModuleType) \
-                            and not isinstance(iconfig.__dict__[param], types.FunctionType) \
-                            and not inspect.isclass(iconfig.__dict__[param]):  # Skip the Dunders, Modules
-                        if not check_assignment(cf, param):
-                            log.Error(f"Unrecognized parameter {param}.")
-                            sys.exit(1)
-            if isEmpty:
-                log.Print("Empty Config File")
+            for name, obj, in inspect.getmembers(iconfig):
+                # only classes that are not part of the i_config module
+                if inspect.isclass(obj) and not obj.__module__.startswith('i_config'):
+                    if issubclass(obj, IConfig):
+                        data =  obj.configuration();
+                        if isinstance(data, dict | JSON):
+                           result.add("configuration", data)
+                        else:
+                            log.Error(f"Wrong type returned by {name}.configuration() -> {type(data)}")
+                    
+                    if issubclass(obj, IRoot):
+                        data = obj.root()
+                        if isinstance(data, dict | JSON):
+                            result.add("root", data)
+                        else:
+                            log.Error(f"Wrong type returned by {name}.root() -> {type(data)}")
+
+                    if issubclass(obj, IPreconditions):
+                        data = obj.preconditions()
+                        if isinstance(data, list | range):
+                            result.add("preconditions", data)
+                        else:
+                            log.Error(f"Wrong type returned by {name}.preconditions() -> {type(data)}")
+
+                    if issubclass(obj, IAutostart):
+                        data = obj.autostart()
+                        if isinstance(data, bool):
+                            result.add("autostart", data)
+                        else:
+                            log.Error(f"Wrong type returned by {name}.autostart() -> {type(data)}")
         else:
             log.Error(f"Config File {cf} exists but couldn't load")
             sys.exit(1)
