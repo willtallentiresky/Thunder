@@ -91,7 +91,13 @@
 
 #define DEFINE_STRING_1(parameter) #parameter
 #define DEFINE_STRING(parameter) DEFINE_STRING_1(parameter)
-#define CONCAT_STRINGS(ARG1, ARG2)  ARG1##ARG2
+#define CONCAT_STRINGS_1(ARG1, ARG2)  ARG1##ARG2
+#define CONCAT_STRINGS(ARG1, ARG2)  CONCAT_STRINGS_1(ARG1,ARG2)
+#define PUSH_WARNING_ROLL_1(WARNING, ...) WARNING
+#define PUSH_WARNING_ROLL_2(WARNING, ...) WARNING PUSH_WARNING_ROLL_1(__VA_ARGS__)
+#define PUSH_WARNING_ROLL_3(WARNING, ...) WARNING PUSH_WARNING_ROLL_2(__VA_ARGS__)
+#define PUSH_WARNING_ROLL_4(WARNING, ...) WARNING PUSH_WARNING_ROLL_3(__VA_ARGS__)
+#define PUSH_WARNING_ROLL_5(WARNING, ...) WARNING PUSH_WARNING_ROLL_4(__VA_ARGS__)
 
 // Seems to be a MSVC issue, see: https://stackoverflow.com/questions/9183993/msvc-variadic-macro-expansion
 #define PUSH_RETURN_ARG_COUNT(_1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, count, ...) count
