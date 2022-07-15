@@ -1364,7 +1364,7 @@ def __Tokenize(contents,log = None):
                 if _find("@stubgen", token):
                     if "@stubgen:skip" in token:
                         skipmode = True
-                        log.Warn("The Use of @stubgen:skip is deprecated, use @stubgen:omit instead", ("%s(%i): " % (CurrentFile(), CurrentLine())))
+                        log.Warn("@stubgen:skip is deprecated, use @stubgen:omit instead", ("%s(%i)" % (CurrentFile(), CurrentLine())))
                     elif "@stubgen:omit" in token:
                         tagtokens.append("@OMIT")
                     elif "@stubgen:stub" in token:
@@ -1402,7 +1402,7 @@ def __Tokenize(contents,log = None):
                     tagtokens.append("@EVENT")
                 if _find("@extended", token):
                     tagtokens.append("@EXTENDED")
-                    log.Warn("@extended keyword is deprecated, use @uncompliant:extended instead")
+                    log.Warn("@extended keyword is deprecated, use @uncompliant:extended instead", ("%s(%i)" % (CurrentFile(), CurrentLine())))
                 if _find("@uncompliant", token):
                     if "@uncompliant:extended" in token:
                         tagtokens.append("@EXTENDED")
@@ -1669,7 +1669,7 @@ def Parse(contents,log = None):
                 event_next = False
             if not isinstance(typedef.type, Type) and typedef.type[0] == "enum":
                 # To be removed
-                log.Warn("Support for typedefs to anonymous enums is deprecated, (%s(%i): " % (CurrentFile(), CurrentLine()))
+                log.Warn("Support for typedefs to anonymous enums is deprecated, (%s(%i)" % (CurrentFile(), CurrentLine()))
                 in_typedef = True
                 i += 1
             elif not isinstance(typedef.type, Type) and (not isinstance(typedef.type, list) or typedef.type[0] in ["struct", "class", "union"]):
